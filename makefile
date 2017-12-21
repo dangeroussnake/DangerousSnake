@@ -1,2 +1,7 @@
 all: snake.f90
-	gfortran -I../pdsrc -J../pdsrc snake.f90 ../pdsrc/ncurses.o ../pdsrc/macros.o -lncurses -o snake
+	$(MAKE) -C ./pdsrc
+	gfortran -I./pdsrc snake.f90 -L./pdsrc -lfncurses -lncurses -o snake
+	chmod +x snake
+
+clean:
+	rm -f snake *.mod

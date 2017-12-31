@@ -83,7 +83,7 @@ contains
         bodyLen=bodyLen+1
       end if
       call generate_food()
-    else if(ch/=ichar(" ")) then
+    else if(ch==ichar("0")) then
       mexit=2
     end if
 

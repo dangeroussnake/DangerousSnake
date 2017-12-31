@@ -73,7 +73,7 @@ int macro_debug(WINDOW *win, const char *filename){
    fprintf(fp2,"got here A\n");
    fp2=fopen("c.20","w");
    fprintf(fp2,"filename=%s\n",filename);
-   fprintf(fp2,"win=%ld\n",win);
+   fprintf(fp2,"win=%ld\n",(long)win); //added cast to suppress warning
    fprintf(fp2,"got here B\n");
    fflush(fp2);
    fclose(fp2);

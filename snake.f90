@@ -7,28 +7,40 @@ module snake
   end type Point
   integer :: direction
   type(Point) :: head
-  integer, parameter :: maxBody=100
+  integer, parameter :: maxBody=200
   type(Point), dimension(maxBody) :: body
   integer :: bodyLen
-  integer :: maxX, maxY
+  !max x and y of the whole window
+  integer :: mwMaxX, mwMaxY
+  !max x and y of the subwindow used as playfield
+  integer :: fieldMaxX, fieldMaxY
+  integer :: headerHeight = 4
+  integer :: foodAmount = 3
+  type(C_PTR) :: field
+
 contains
 
   subroutine init()
     integer :: i
-    bodyLen=0
+    bodyLen=1
     direction=1
     do i=1, maxBody
       body(i)%x=-1
       body(i)%y=-1
     end do
-    call getmaxyx(stdscr,maxY,maxX)
-    head%x=maxX/2
-    head%y=maxY/2
+    call getmaxyx(field,fieldMaxY,fieldMaxX)
+    !align field
+    fieldMaxX = fieldMaxX-MODULO(fieldMaxX,2)
+    !setup the snake you start with
+    head%x=fieldMaxX/2
+    head%y=fieldMaxY/2
+    body(1)%x=head%x-1
+    body(1)%y=head%y
     !align snake
     if(MODULO(head%x,2)==1) then
       head%x=head%x+1
     end if
-    do i=1, 5
+    do i=1, foodAmount
       call generate_food()
     end do
   end subroutine init
@@ -42,17 +54,16 @@ contains
 
     select case(direction)
     case(0)
-      new_y=MODULO(head%y-1, maxY)
+      new_y=MODULO(head%y-1, fieldMaxY)
     case(1)
-      new_x=MODULO(head%x+2, maxX)
+      new_x=MODULO(head%x+2, fieldMaxX)
     case(2)
-      new_y=MODULO(head%y+1, maxY)
+      new_y=MODULO(head%y+1, fieldMaxY)
     case(3)
-      new_x=MODULO(head%x-2, maxX)
+      new_x=MODULO(head%x-2, fieldMaxX)
     end select
 
   !move body
-
     do i=bodyLen+1, 2, -1
       body(i)=body(i-1)
     end do
@@ -64,10 +75,10 @@ contains
     head%y=new_y
 
   !check collision
-    ch = mvinch(new_y,new_x)
+    ch = mvwinch(field,new_y,new_x)
     if(ch==ichar("*")) then
       if(bodyLen+2>maxBody) then
-        ierr = mvprintw(6,0,"You won!")
+        ierr = mvwprintw(field,6,0,"You won!")
       else
         bodyLen=bodyLen+1
       end if
@@ -77,43 +88,12 @@ contains
     end if
 
   !render
-    ierr=mvaddch(head%y,head%x,ichar("X",8))
+    ierr=mvwaddch(field,head%y,head%x,ichar("X",8))
     do i=1, bodyLen
-      ierr = mvaddch(body(i)%y, body(i)%x, ichar("0",8))
+      ierr=mvwaddch(field,body(i)%y,body(i)%x,ichar("0",8))
     end do
-    ierr=mvaddch(body(bodyLen+1)%y, body(bodyLen+1)%x, ichar(" ",8))
+    ierr=mvwaddch(field, body(bodyLen+1)%y, body(bodyLen+1)%x, ichar(" ",8))
   end subroutine move_snake
-
-  subroutine draw_info(debug)
-    logical :: debug
-    integer(C_LONG) :: ierr
-    integer :: i
-    character*6 :: str
-    ierr=attron(COLOR_PAIR(2))
-    ierr=mvprintw(0,0, "Press q to exit"//C_NULL_CHAR)
-    if (debug) then
-      write(str,'(a3,i3)') "d: ",direction
-      ierr=mvprintw(1,0,str)
-      write(str,'(a3,i3)') "x: ",head%x
-      ierr=mvprintw(2,0,str)
-      write(str,'(a3,i3)') "y: ",head%y
-      ierr=mvprintw(3,0,str)
-      write(str,'(a3,i3)') "l: ",bodyLen
-      ierr=mvprintw(4,0,str)
-
-      do i=1, bodyLen+1
-        write(str, '(i2)') body(i)%x
-        ierr=mvprintw(i+5, 0, str)
-
-        write(str, '(i2)') body(i)%y
-        ierr=mvprintw(i+5, 3, str)
-      end do
-    else
-      write(str,'(a3,i3)') "l: ",bodyLen
-      ierr=mvprintw(1,0,str)
-    end if
-    ierr=attroff(COLOR_PAIR(2))
-  end subroutine draw_info
 
   subroutine turn_left()
     direction=MODULO(direction-1,4)
@@ -126,17 +106,33 @@ contains
   subroutine generate_food()
     integer :: ierr, x,y
     integer(C_LONG) :: ch
+
     ch=ichar(" ")
     do
-      x=MODULO(irand(),maxX)
-      y=MODULO(irand(), maxY)
+      x=MODULO(irand(),fieldMaxX)
+      y=MODULO(irand(),fieldMaxY)
       if(MODULO(x,2)==1) then
         x=x+1
       end if
-      if(mvinch(y,x)==ch) exit
+      if(mvwinch(field,y,x)==ch) exit
     end do
-    ierr=mvaddch(y,x,ichar("*",8))
+    ierr=mvwaddch(field,y,x,ichar("*",8))
   end subroutine generate_food
+
+  subroutine draw_info(debug)
+    logical :: debug
+    integer(C_LONG) :: ierr
+    integer :: i
+    character*3 :: str
+
+    !draw seperator at the end of the header
+    ierr = mvhline(headerHeight-1, 0, 0_C_LONG, mwMaxX)
+
+    ierr=mvprintw(0,0, "Press q to exit"//C_NULL_CHAR)
+    ierr=mvprintw(1,0, "Length: "//C_NULL_CHAR)
+    write(str,'(i3)') bodyLen
+    ierr=mvprintw(1,8,str)
+  end subroutine draw_info
 
 end module snake
 
@@ -173,6 +169,9 @@ program main
   call srand(seed)
   ierr=init_pair(1_C_SHORT, COLOR_RED, COLOR_BLACK)
   ierr=init_pair(2_C_SHORT, COLOR_GREEN, COLOR_BLACK)
+
+  call getmaxyx(stdscr, mwMaxY, mwMaxX)
+  field = newwin(mwMaxY-headerHeight, mwMaxX, headerHeight, 0);
   call init()
   do
     if (mexit/=0) exit
@@ -186,20 +185,20 @@ program main
       mexit=1
     case (ichar(" ",8))
       call move_snake(mexit)
-    case default
-      ierr=mvaddch(4,4,ichar(" ",8))
     end select
     call draw_info(debug)
     call move_snake(mexit)
     ierr=refresh()
+    ierr=wrefresh(field)
     call usleep(get_sleep_time(bodyLen))
   end do
   if(mexit==2) then
     ierr=attron(COLOR_PAIR(1))
-    ierr=mvprintw(maxY/2, maxX/2-5, "Game over!")
+    ierr=mvprintw(1, mwMaxX/2-5, "Game over!")
     ierr=attroff(COLOR_PAIR(1))
     ierr=nodelay(stdscr,logical(.FALSE.,1))
     ikey=getch()
   end if
+  ierr=delwin(field)
   ierr=endwin()
 end program main

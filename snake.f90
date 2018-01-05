@@ -5,12 +5,17 @@ module snake
     type :: Point
         integer :: x, y
     end type Point
-    integer :: direction
-    type(Point) :: head
+    
+    !CONSTANTS
     integer, parameter :: headerHeight = 4
     integer, parameter :: foodAmount = 3
-    integer, parameter :: boostTicksOnEat = 10
-    integer, parameter :: maxBody = 5
+    integer, parameter :: boostTime_ms = 3000
+    real, parameter :: boostIntensity = 0.6
+    integer, parameter :: maxBody = 200
+    
+    !VARIABLES
+    integer :: direction
+    type(Point) :: head
     type(Point), dimension(maxBody) :: body
     integer :: bodyLen
     !max x and y of the main window
@@ -81,7 +86,7 @@ contains
         if (ch == ichar("*")) then
             !on eat
             bodyLen = bodyLen + 1
-            boostTicks = boostTicks + boostTicksOnEat
+            boostTicks = boostTicks + boostTime_ms/(get_sleep_time_us(bodyLen, .FALSE.)/1000.0)
             if (bodyLen+1 >= maxBody) then
                 mexit = 3
             end if
@@ -150,8 +155,6 @@ contains
         end if
         write(str, '(i3)') bodyLen
         ierr = mvprintw(1, 8, str)
-        write(str, '(i3)') boostTicks
-        ierr = mvprintw(1, 15, str)
     end subroutine draw_info
 
     subroutine setup_colors()
@@ -176,17 +179,18 @@ contains
 
     end subroutine setup_colors
 
-    integer function get_sleep_time(len)
+    integer function get_sleep_time_us(len, applyBoost)
         implicit none
-        integer :: len
-        integer :: sleep_time = 4000000
-        real :: boostIntensity
-        if (boostTicks <= 0) then
-            boostIntensity = 1.0
+        integer, intent(in) :: len
+        logical, intent(in) :: applyBoost
+        integer :: sleep_time = 6000000
+        real :: intensity
+        if (boostTicks > 0 .AND. applyBoost) then
+            intensity = boostIntensity
         else
-            boostIntensity = 0.6
+            intensity = 1.0
         end if
-        get_sleep_time = INT(sleep_time/(len+10) * boostIntensity)
-    end function get_sleep_time
+        get_sleep_time_us = INT(sleep_time/(len+15) * intensity)
+    end function get_sleep_time_us
 
 end module snake

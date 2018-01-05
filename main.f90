@@ -47,7 +47,7 @@ program main
         call move_snake(mexit)
         ierr = refresh()
         ierr = wrefresh(field)
-        call usleep(get_sleep_time(bodyLen))
+        call usleep(get_sleep_time_us(bodyLen, .TRUE.))
         if (boostTicks > 0) boostTicks = boostTicks - 1
     end do
     select case(mexit)

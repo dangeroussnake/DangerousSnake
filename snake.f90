@@ -5,14 +5,18 @@ module snake
     type :: Point
         integer :: x, y
     end type Point
-    
+
     !CONSTANTS
     integer, parameter :: headerHeight = 4
     integer, parameter :: foodAmount = 3
     integer, parameter :: boostTime_ms = 3000
     real, parameter :: boostIntensity = 0.6
     integer, parameter :: maxBody = 200
-    
+
+    integer, parameter :: SKEY_EXIT = ichar("q",8)
+    integer, parameter :: SKEY_LEFT = ichar("a",8)
+    integer, parameter :: SKEY_RIGHT = ichar("d",8)
+
     !VARIABLES
     integer :: direction
     type(Point) :: head

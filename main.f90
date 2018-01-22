@@ -4,13 +4,14 @@ program main
     use bindings
     implicit none
 
-    integer, parameter :: seed = 129085
+    integer :: seed
     logical :: debug = .FALSE.
     logical :: readCharacter = .TRUE.
     integer :: ierr, ikey
     !0 is no exit, 1 is intentional exit, 2 is game over, 3 is win
     integer :: mexit = 0
     integer(C_LONG) :: ch
+    seed = TIME()
     stdscr = initscr()
     ierr = start_color()
     ierr = cbreak()

@@ -4,12 +4,15 @@ program main
     use bindings
     implicit none
 
+    logical, parameter :: debug = .FALSE.
+
     integer :: seed
-    logical :: debug = .FALSE.
     logical :: readCharacter = .TRUE.
     integer :: ierr, ikey
+    integer :: i
     !0 is no exit, 1 is intentional exit, 2 is game over, 3 is win
     integer :: mexit = 0
+    integer :: collision = 0
     integer(C_LONG) :: ch
     seed = TIME()
     stdscr = initscr()
@@ -24,7 +27,13 @@ program main
     field = newwin(mwMaxY - headerHeight, mwMaxX, headerHeight, 0);
     ierr = wbkgd(stdscr, COLOR_PAIR(5))
     ierr = wbkgd(field, COLOR_PAIR(4))
-    call init()
+    call init_game()
+    call init_snake(player, .TRUE.)
+    call set_pos_center(player)
+    do i=1, SIZE(snakes)
+        call init_snake(snakes(i), .FALSE.)
+        call respawn_AI_snake(snakes(i))
+    end do
     do
         if (mexit /= 0) exit
         readCharacter = .TRUE.
@@ -33,22 +42,36 @@ program main
             ikey = getch()
             select case(ikey)
             case(SKEY_LEFT)
-                call turn_left()
+                call turn_left(player)
             case(SKEY_RIGHT)
-                call turn_right()
+                call turn_right(player)
             case(SKEY_EXIT)
                 mexit = 1
+            case(SKEY_ADVANCE)
             case(ERR) !do nothing
             case default
                 !remove useless characters from input buffer
                 readCharacter = .TRUE.
             end select
         end do
-        call draw_info(debug)
-        call move_snake(mexit)
+        if(move_snake(player) /= 0) then
+            mexit = 2
+        end if
+        if(player%bodyLen+1 >= maxBody) then
+            mexit = 3
+        end if
+        call display_snake(player)
+        do i=1, SIZE(snakes)
+            call advance_AI(snakes(i))
+        end do
+        !draw
+        do i=1, SIZE(snakes)
+            call display_snake(snakes(i))
+        end do
+        call draw_info(player, debug)
         ierr = refresh()
         ierr = wrefresh(field)
-        call usleep(get_sleep_time_us(bodyLen, .TRUE.))
+        call usleep(get_sleep_time_us(player%bodyLen, .TRUE.))
         if (boostTicks > 0) boostTicks = boostTicks - 1
     end do
     select case(mexit)
@@ -70,12 +93,12 @@ program main
 end program main
 
 subroutine wait_for_exit()
-  use ncurses
-  use snake
-  implicit none
-  integer :: ikey
-  do while (.TRUE.)
-    ikey = getch()
-    if (ikey==SKEY_EXIT) exit
-  end do
+    use ncurses
+    use snake
+    implicit none
+    integer :: ikey
+    do while (.TRUE.)
+        ikey = getch()
+        if (ikey==SKEY_EXIT) exit
+    end do
 end subroutine wait_for_exit

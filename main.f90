@@ -12,8 +12,6 @@ program main
     integer :: i
     !0 is no exit, 1 is intentional exit, 2 is game over, 3 is win
     integer :: mexit = 0
-    integer :: collision = 0
-    integer(C_LONG) :: ch
     seed = TIME()
     stdscr = initscr()
     ierr = start_color()

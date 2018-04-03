@@ -1,6 +1,5 @@
 module snake
     use ncurses
-    use bindings
     implicit none
 
     !CONSTANTS
@@ -81,7 +80,6 @@ contains
         integer :: collision
         integer :: i
         integer :: new_x, new_y
-        integer(C_LONG) :: ierr
         integer(chtype) :: cell
         new_x = this%head%x
         new_y = this%head%y
@@ -261,8 +259,8 @@ contains
         type(Snake_t) :: this
         this%bodyLen = this%bodyLen + 1
         if(this%is_player .eqv. .TRUE.) then
-            boostTicks = boostTicks + boostTime_ms/ &
-                (get_sleep_time_us(this%bodyLen, .FALSE.)/1000.0)
+            boostTicks = INT(boostTicks + boostTime_ms/ &
+                (get_sleep_time_us(this%bodyLen, .FALSE.)/1000.0))
         end if
         call generate_food()
     end subroutine eat_food
@@ -288,7 +286,6 @@ contains
         type(Snake_t) :: this
         logical :: debug
         integer(C_LONG) :: ierr
-        integer :: i
         character(len=3) :: str
 
         ierr = move(1, 0)

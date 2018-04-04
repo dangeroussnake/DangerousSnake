@@ -111,6 +111,7 @@ contains
         if (iand(cell, A_CHARTEXT) == ichar("*")) then
             !on eat
             call eat_food(this)
+            call generate_food()
             collision = 0
             return
         else if (iand(cell, A_CHARTEXT) /= ichar(" ")) then
@@ -255,6 +256,7 @@ contains
         this%direction = MODULO(this%direction + 1, 4)
     end subroutine turn_right
 
+    !increases snake length by 1, adds boost
     subroutine eat_food(this)
         type(Snake_t) :: this
         this%bodyLen = this%bodyLen + 1
@@ -262,9 +264,9 @@ contains
             boostTicks = INT(boostTicks + boostTime_ms/ &
                 (get_sleep_time_us(this%bodyLen, .FALSE.)/1000.0))
         end if
-        call generate_food()
     end subroutine eat_food
 
+    !spawns a new food entity
     subroutine generate_food()
         integer :: ierr, x, y
         integer(C_LONG) :: ch

@@ -1,20 +1,7 @@
 module snake
     use ncurses
+    use constants
     implicit none
-
-    !CONSTANTS
-    integer, parameter :: headerHeight = 4
-    integer, parameter :: foodAmount = 3
-    integer, parameter :: boostTime_ms = 3000
-    real, parameter :: boostIntensity = 0.6
-    integer, parameter :: maxBody = 200
-    integer, parameter :: aiCount = 5
-    integer, parameter :: aiMaxBodyLen = 15
-
-    integer, parameter :: SKEY_EXIT = ichar("q",8)
-    integer, parameter :: SKEY_LEFT = ichar("a",8)
-    integer, parameter :: SKEY_RIGHT = ichar("d",8)
-    integer, parameter :: SKEY_ADVANCE = ichar(" ",8)
 
     !TYPES
     type :: Point
@@ -22,7 +9,6 @@ module snake
     end type Point
 
     type :: Snake_t
-        !0: up, 1: right, 2: down, 3: left
         integer :: direction
         type(Point) :: head
         type(Point), dimension(maxBody) :: body
@@ -31,7 +17,6 @@ module snake
         logical :: resetOnIdleEnd
         logical :: is_player
     end type Snake_t
-
 
     !VARIABLES
     !max x and y of the main window
@@ -43,29 +28,34 @@ module snake
     !player's snake
     type(Snake_t) :: player
     !ki's snakes
-    type(Snake_t), dimension(aiCount) :: snakes
-
+    type(Snake_t), dimension(maxAICount) :: snakes
+    integer :: aiCount
 
 contains
 
-    subroutine init_game()
-        type(Snake_t) :: this
+    subroutine init_game(mode)
+        integer, intent(in) :: mode
         integer :: i
+        select case(mode)
+        case(MODE_SNAKE)
+            aiCount = 0
+        case(MODE_SNAKE_AI)
+            aiCount = maxAICount
+        end select
         call getmaxyx(field, fieldMaxY, fieldMaxX)
         !align field
-        fieldMaxX = fieldMaxX - MODULO(fieldMaxX, 2)
-        call set_pos_center(this)
+        fieldMaxX = fieldMaxX - modulo(fieldMaxX, 2)
         do i = 1, foodAmount
             call generate_food()
         end do
     end subroutine init_game
 
     subroutine init_snake(this, is_player)
-        type(Snake_t) :: this
-        logical :: is_player
+        type(Snake_t), intent(inout) :: this
+        logical, intent(in) :: is_player
         integer :: i
         this%bodyLen = 1
-        this%direction = 1
+        this%direction = DIRECTION_UP
         this%idleTicks = -1
         this%resetOnIdleEnd = .FALSE.
         this%is_player = is_player
@@ -74,9 +64,9 @@ contains
         end do
     end subroutine init_snake
 
-    !@return 0: no collision, 1: ai->ai collision, 2: ai->player collision
+    !@return a collision type
     function move_snake(this) result(collision)
-        type(Snake_t) :: this
+        type(Snake_t), intent(inout) :: this
         integer :: collision
         integer :: i
         integer :: new_x, new_y
@@ -85,14 +75,14 @@ contains
         new_y = this%head%y
 
         select case(this%direction)
-        case(0)
-            new_y = MODULO(this%head%y - 1, fieldMaxY)
-        case(1)
-            new_x = MODULO(this%head%x + 2, fieldMaxX)
-        case(2)
-            new_y = MODULO(this%head%y + 1, fieldMaxY)
-        case(3)
-            new_x = MODULO(this%head%x - 2, fieldMaxX)
+        case(DIRECTION_UP)
+            new_y = modulo(this%head%y - 1, fieldMaxY)
+        case(DIRECTION_RIGHT)
+            new_x = modulo(this%head%x + 2, fieldMaxX)
+        case(DIRECTION_DOWN)
+            new_y = modulo(this%head%y + 1, fieldMaxY)
+        case(DIRECTION_LEFT)
+            new_x = modulo(this%head%x - 2, fieldMaxX)
         end select
 
         !move body
@@ -112,24 +102,24 @@ contains
             !on eat
             call eat_food(this)
             call generate_food()
-            collision = 0
+            collision = COLLISION_NONE
             return
         else if (iand(cell, A_CHARTEXT) /= ichar(" ")) then
             if(iand(cell, A_COLOR) == COLOR_PAIR(7) &
                 .or. iand(cell, A_COLOR) == COLOR_PAIR(8)) then
-                collision = 2
+                collision = COLLISION_AI_PLAYER
             else
-                collision = 1
+                collision = COLLISION_AI_AI
             end if
             return
         else
-            collision = 0
+            collision = COLLISION_NONE
             return
         end if
     end function move_snake
 
     subroutine display_snake(this)
-        type(Snake_t) :: this
+        type(Snake_t), intent(in) :: this
         integer :: i
         integer(C_LONG) :: ierr
         integer :: headColor, bodyColor
@@ -162,7 +152,7 @@ contains
     end subroutine display_snake
 
     subroutine advance_AI(this)
-        type(Snake_t) :: this
+        type(Snake_t), intent(inout) :: this
         integer :: res
         if(this%idleTicks>0) then
             this%idleTicks = this%idleTicks - 1
@@ -174,24 +164,24 @@ contains
                 call respawn_AI_snake(this)
             end if
         end if
-        select case(MODULO(irand(), 10))
+        select case(modulo(irand(), 10))
         case (0)
             call turn_left(this)
         case (1)
             call turn_right(this)
         end select
         res = move_snake(this)
-        if(res /= 0) then
+        if(res /= COLLISION_NONE) then
             this%idleTicks = 5
             this%resetOnIdleEnd = .TRUE.
-            if(res == 2) then
+            if(res == COLLISION_AI_PLAYER) then
                 call eat_food(player)
             end if
         end if
     end subroutine advance_AI
 
     subroutine clear_snake(this)
-        type(Snake_t) :: this
+        type(Snake_t), intent(inout) :: this
         integer :: i
         integer(C_LONG) :: ierr
         ierr = mvwaddch(field, this%head%y, this%head%x, ichar(" ", 8))
@@ -203,41 +193,41 @@ contains
     end subroutine clear_snake
 
     subroutine respawn_AI_snake(this)
-        type(Snake_t) :: this
+        type(Snake_t), intent(inout) :: this
         integer :: side
-        side = MODULO(irand(),4)
+        side = modulo(irand(),4)
         select case(side)
         case(0) !top side
-            this%bodyLen = MODULO(irand(), aiMaxBodyLen)+1
-            this%head%x = alignX(MODULO(irand(), fieldMaxX))
+            this%bodyLen = modulo(irand(), aiMaxBodyLen)+1
+            this%head%x = alignX(modulo(irand(), fieldMaxX))
             this%head%y = 0
         case(1) !right side
-            this%bodyLen = MODULO(irand(), aiMaxBodyLen)+1
+            this%bodyLen = modulo(irand(), aiMaxBodyLen)+1
             this%head%x = fieldMaxX
-            this%head%y = MODULO(irand(), fieldMaxY+1)
+            this%head%y = modulo(irand(), fieldMaxY+1)
         case(2) !bottom side
-            this%bodyLen = MODULO(irand(), aiMaxBodyLen)+1
-            this%head%x = alignX(MODULO(irand(), fieldMaxX))
+            this%bodyLen = modulo(irand(), aiMaxBodyLen)+1
+            this%head%x = alignX(modulo(irand(), fieldMaxX))
             this%head%y = fieldMaxY
         case(3) !left side
-            this%bodyLen = MODULO(irand(), aiMaxBodyLen)+1
+            this%bodyLen = modulo(irand(), aiMaxBodyLen)+1
             this%head%x = 0
-            this%head%y = MODULO(irand(), fieldMaxY+1)
+            this%head%y = modulo(irand(), fieldMaxY+1)
         end select
     end subroutine respawn_AI_snake
 
     function alignX(x)
-        integer :: x
+        integer, intent(in) :: x
         integer :: alignX
-        if (MODULO(x, 2) == 1) then
-            x = MODULO(x + 1, fieldMaxX)
-        end if
         alignX = x
+        if (modulo(x, 2) == 1) then
+            alignX = modulo(x + 1, fieldMaxX)
+        end if
         return
     end function alignX
 
     subroutine set_pos_center(this)
-        type(Snake_t) :: this
+        type(Snake_t), intent(inout) :: this
         !setup and align the snake you start with
         this%head%x = alignX(fieldMaxX/2)
         this%head%y = fieldMaxY/2
@@ -247,21 +237,21 @@ contains
     end subroutine set_pos_center
 
     subroutine turn_left(this)
-        type(Snake_t) :: this
-        this%direction = MODULO(this%direction - 1, 4)
+        type(Snake_t), intent(inout) :: this
+        this%direction = modulo(this%direction - 1, 4)
     end subroutine turn_left
 
     subroutine turn_right(this)
-        type(Snake_t) :: this
-        this%direction = MODULO(this%direction + 1, 4)
+        type(Snake_t), intent(inout) :: this
+        this%direction = modulo(this%direction + 1, 4)
     end subroutine turn_right
 
     !increases snake length by 1, adds boost
     subroutine eat_food(this)
-        type(Snake_t) :: this
+        type(Snake_t), intent(inout) :: this
         this%bodyLen = this%bodyLen + 1
         if(this%is_player .eqv. .TRUE.) then
-            boostTicks = INT(boostTicks + boostTime_ms/ &
+            boostTicks = int(boostTicks + boostTime_ms/ &
                 (get_sleep_time_us(this%bodyLen, .FALSE.)/1000.0))
         end if
     end subroutine eat_food
@@ -273,10 +263,10 @@ contains
 
         ch = ichar(" ")
         do
-            x = MODULO(irand(), fieldMaxX)
-            y = MODULO(irand(), fieldMaxY)
+            x = modulo(irand(), fieldMaxX)
+            y = modulo(irand(), fieldMaxY)
             !align food
-            x = x + MODULO(x, 2)
+            x = x + modulo(x, 2)
             if (iand(mvwinch(field, y, x), A_CHARTEXT) == ch) exit
         end do
         ierr = wattron(field, COLOR_PAIR(3))
@@ -285,8 +275,8 @@ contains
     end subroutine generate_food
 
     subroutine draw_info(this, debug)
-        type(Snake_t) :: this
-        logical :: debug
+        type(Snake_t), intent(in) :: this
+        logical, intent(in) :: debug
         integer(C_LONG) :: ierr
         character(len=3) :: str
 
@@ -305,6 +295,10 @@ contains
         end if
         write(str, '(i3)') this%bodyLen
         ierr = mvprintw(1, 8, str)
+
+        if(debug) then
+            ierr = mvprintw(0, mwMaxX-5, "debug" // C_NULL_CHAR)
+        end if
     end subroutine draw_info
 
     subroutine setup_colors()
@@ -330,11 +324,9 @@ contains
             ierr = init_pair(7_C_SHORT, COLOR_BLUE, COLOR_BLACK)                !player head
             ierr = init_pair(8_C_SHORT, COLOR_YELLOW, COLOR_BLACK)              !player body
         end if
-
     end subroutine setup_colors
 
     integer function get_sleep_time_us(len, applyBoost)
-        implicit none
         integer, intent(in) :: len
         logical, intent(in) :: applyBoost
         integer :: sleep_time = 6000000
@@ -344,7 +336,6 @@ contains
         else
             intensity = 1.0
         end if
-        get_sleep_time_us = INT(sleep_time/(len+15) * intensity)
+        get_sleep_time_us = int(sleep_time/(len+15) * intensity)
     end function get_sleep_time_us
-
 end module snake

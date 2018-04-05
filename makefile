@@ -2,7 +2,8 @@
 all: snake
 
 snake: main.f90 pdsrc
-	gfortran -Wpedantic -Wall -I./pdsrc bindings.f90 snake.f90 main.f90 -L./pdsrc -lfncurses -lncurses -o snake
+	gfortran -Wpedantic -Wall -I./pdsrc constants.f90 bindings.f90 snake.f90 \
+		game.f90 main.f90 -L./pdsrc -lfncurses -lncurses -o snake
 	chmod +x snake
 
 snake.mod: snake.f90 pdsrc

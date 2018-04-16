@@ -13,14 +13,22 @@ program main
     ierr = start_color()
     ierr = cbreak()
     ierr = noecho()
-    ierr = nodelay(stdscr, logical(.TRUE., 1))
     ierr = curs_set(0)
     call srand(TIME())
 
-    call show_menu(exit, mode)
-    if(.not. exit) then
-        call run_game(mode, debug)
-    end if
+    do
+        call show_menu(exit, mode)
+        if(exit) then
+            exit
+        else
+            select case(mode)
+            case(MODE_SNAKE, MODE_SNAKE_AI)
+                call run_game(mode, debug)
+            case(MODE_SCORES)
+                call show_scores()
+            end select
+        end if
+    end do
 
     ierr = endwin()
 end program main

@@ -4,6 +4,7 @@ module constants
     !control
     integer, parameter :: MODE_SNAKE                = 0
     integer, parameter :: MODE_SNAKE_AI             = 1
+    integer, parameter :: MODE_SCORES               = 2
 
     integer, parameter :: COLLISION_NONE            = 0
     integer, parameter :: COLLISION_AI_AI           = 1
@@ -37,5 +38,7 @@ module constants
     integer, parameter :: maxAICount = 5
     integer, parameter :: aiMaxBodyLen = 15
 
+    !files
+    character(len=*), parameter :: SCORES_FILE             = "scores.txt"
 contains
 end module constants

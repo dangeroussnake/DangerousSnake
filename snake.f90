@@ -286,18 +286,18 @@ contains
             !draw separator at the end of the header
             ierr = mvhline(headerHeight - 1, 0, 0_C_LONG, mwMaxX)
         end if
-        ierr = mvprintw(0, 0, "Press q to exit" // C_NULL_CHAR)
-        ierr = mvprintw(1, 0, "Length: " // C_NULL_CHAR)
+        ierr = mvprintw(0, 0, "Press q to exit"//C_NULL_CHAR)
+        ierr = mvprintw(1, 0, "Length: "//C_NULL_CHAR)
         if (boostTicks > 0) then
             ierr = attron(COLOR_PAIR(6))
-            ierr = mvprintw(1, mwMaxX/2 - 4, "BOOSTING" // C_NULL_CHAR)
+            ierr = mvprintw(1, mwMaxX/2 - 4, "BOOSTING"//C_NULL_CHAR)
             ierr = attroff(COLOR_PAIR(6))
         end if
         write(str, '(i3)') this%bodyLen
         ierr = mvprintw(1, 8, str)
 
         if(debug) then
-            ierr = mvprintw(0, mwMaxX-5, "debug" // C_NULL_CHAR)
+            ierr = mvprintw(0, mwMaxX-5, "debug"//C_NULL_CHAR)
         end if
     end subroutine draw_info
 

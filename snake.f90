@@ -23,7 +23,7 @@ module snake
     integer :: mwMaxX, mwMaxY
     !max x and y of the subwindow used as playfield
     integer :: fieldMaxX, fieldMaxY
-    integer :: boostTicks = 0
+    integer :: boostTicks
     type(C_PTR) :: field
     !player's snake
     type(Snake_t) :: player
@@ -42,6 +42,7 @@ contains
         case(MODE_SNAKE_AI)
             aiCount = maxAICount
         end select
+        boostTicks = 0
         call getmaxyx(field, fieldMaxY, fieldMaxX)
         !align field
         fieldMaxX = fieldMaxX - modulo(fieldMaxX, 2)
@@ -260,7 +261,6 @@ contains
     subroutine generate_food()
         integer :: ierr, x, y
         integer(C_LONG) :: ch
-
         ch = ichar(" ")
         do
             x = modulo(irand(), fieldMaxX)
@@ -279,7 +279,6 @@ contains
         logical, intent(in) :: debug
         integer(C_LONG) :: ierr
         character(len=3) :: str
-
         ierr = move(1, 0)
         ierr = clrtoeol()
         if (.NOT. can_change_color()) then
@@ -329,8 +328,9 @@ contains
     integer function get_sleep_time_us(len, applyBoost)
         integer, intent(in) :: len
         logical, intent(in) :: applyBoost
-        integer :: sleep_time = 6000000
+        integer :: sleep_time
         real :: intensity
+        sleep_time = 6000000
         if (boostTicks > 0 .AND. applyBoost) then
             intensity = boostIntensity
         else

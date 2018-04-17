@@ -9,15 +9,17 @@ contains
     subroutine show_menu(mexit, mode)
         logical, intent(out) :: mexit
         integer, intent(out) :: mode
-        character(len=11), dimension(0:3) :: choices = &
+        character(len=11), parameter, dimension(0:3) :: choices = &
             [ "Snake      ", "Snake w/ AI", "Scores     ", "Exit       "]
-        integer :: ch, ierr, choice = 0
+        integer :: ch, ierr, choice
         type(C_PTR)         :: menu_win
-        integer             :: x=2
+        integer             :: x
         integer             :: y
         integer             :: i
+        x = 2
+        choice = 0
         menu_win = stdscr
-        ierr=keypad(stdscr, TRUE)
+        ierr = keypad(menu_win, TRUE)
         ierr = wclear(menu_win)
         do
             !display menu
@@ -62,10 +64,12 @@ contains
     subroutine run_game(mode, debug)
         integer, intent(in) :: mode
         logical, intent(in) :: debug
-        logical :: readCharacter = .TRUE.
+        logical :: readCharacter
         integer :: ierr, ikey
         integer :: i
-        integer :: mexit = EXIT_NONE
+        integer :: mexit
+        readCharacter = .TRUE.
+        mexit = EXIT_NONE
         call setup_colors()
         ierr = nodelay(stdscr, logical(.TRUE., 1))
         call getmaxyx(stdscr, mwMaxY, mwMaxX)
@@ -151,16 +155,15 @@ contains
         integer, dimension(10,2) :: scores
         integer :: ioStat
         integer :: score, count
-        integer :: i = 1
-
+        integer :: i
+        i = 1
         open(20, file=SCORES_FILE, iostat=ioStat)
         if(ioStat == 0) then
-            do
+            do i=1, size(scores, 1)
                 read(20, fmt='(2I10)', iostat=ioStat) score, count
                 if(ioStat /= 0) exit
                 scores(i,1) = score
                 scores(i,2) = count
-                i = i + 1
             end do
             close(20)
         end if
@@ -173,21 +176,23 @@ contains
     subroutine write_scores(scores)
         integer, intent(in), dimension(10,2) :: scores
         integer :: ioStat, i
-        open(20, file=SCORES_FILE)
+        open(20, file=SCORES_FILE, iostat=ioStat)
         if(ioStat == 0) then
             do i=1, size(scores,1)
                 if(scores(i,1) <= -1 .and. scores(i,2) <= -1) exit
                 write(20, fmt="(2I10)", iostat=ioStat) scores(i,1), scores(i,2)
                 if(ioStat /= 0) exit
             end do
+            close(20)
         end if
     end subroutine write_scores
 
     subroutine show_scores()
         integer, dimension(10,2) :: scores
         integer :: ierr, ch
-        integer :: y = 1
+        integer :: y
         integer :: i
+        y = 1
         scores = load_scores()
         ierr = wclear(stdscr)
         ierr = box(stdscr, 0_C_LONG, 0_C_LONG)
@@ -207,7 +212,8 @@ contains
         integer, dimension(10,2) :: scores
         integer, dimension(2) :: buf, tmp
         integer :: i
-        logical :: shift = .FALSE.
+        logical :: shift
+        shift = .FALSE.
         scores = load_scores()
         do i=1, size(scores,1)
             if(.not. shift) then

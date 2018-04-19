@@ -16,6 +16,8 @@ program main
     ierr = curs_set(0)
     call srand(TIME())
 
+    call setup_colors()
+    
     do
         call show_menu(exit, mode)
         if(exit) then

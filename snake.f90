@@ -11,7 +11,7 @@ module snake
     type :: Snake_t
         integer :: direction
         type(Point) :: head
-        type(Point), dimension(maxBody) :: body
+        type(Point), dimension(MAX_BODY_LEN) :: body
         integer :: bodyLen
         integer :: idleTicks
         logical :: resetOnIdleEnd
@@ -28,7 +28,7 @@ module snake
     !player's snake
     type(Snake_t) :: player
     !ki's snakes
-    type(Snake_t), dimension(maxAICount) :: snakes
+    type(Snake_t), dimension(MAX_AI_COUNT) :: snakes
     integer :: aiCount
 
 contains
@@ -40,13 +40,13 @@ contains
         case(MODE_SNAKE)
             aiCount = 0
         case(MODE_SNAKE_AI)
-            aiCount = maxAICount
+            aiCount = MAX_AI_COUNT
         end select
         boostTicks = 0
         call getmaxyx(field, fieldMaxY, fieldMaxX)
         !align field
         fieldMaxX = fieldMaxX - modulo(fieldMaxX, 2)
-        do i = 1, foodAmount
+        do i = 1, FOOD_AMOUNT
             call generate_food()
         end do
     end subroutine init_game
@@ -60,7 +60,7 @@ contains
         this%idleTicks = -1
         this%resetOnIdleEnd = .FALSE.
         this%is_player = is_player
-        do i = 1, maxBody
+        do i = 1, MAX_BODY_LEN
             this%body(i) = Point(-1,-1)
         end do
     end subroutine init_snake
@@ -126,16 +126,16 @@ contains
         integer :: headColor, bodyColor
 
         if(this%is_player) then
-            headColor = 7
+            headColor = CP_PLAYER_HEAD
         else
-            headColor = 1
+            headColor = CP_AI_HEAD
         end if
         if(this%idleTicks>-1) then
-            bodyColor = 1
+            bodyColor = CP_AI_HEAD
         else if(this%is_player) then
-            bodyColor = 8
+            bodyColor = CP_PLAYER_BODY
         else
-            bodyColor = 2
+            bodyColor = CP_AI_BODY
         end if
         !render
         ierr = wattron(field, COLOR_PAIR(headColor))
@@ -199,19 +199,19 @@ contains
         side = modulo(irand(),4)
         select case(side)
         case(0) !top side
-            this%bodyLen = modulo(irand(), aiMaxBodyLen)+1
+            this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
             this%head%x = alignX(modulo(irand(), fieldMaxX))
             this%head%y = 0
         case(1) !right side
-            this%bodyLen = modulo(irand(), aiMaxBodyLen)+1
+            this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
             this%head%x = fieldMaxX
             this%head%y = modulo(irand(), fieldMaxY+1)
         case(2) !bottom side
-            this%bodyLen = modulo(irand(), aiMaxBodyLen)+1
+            this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
             this%head%x = alignX(modulo(irand(), fieldMaxX))
             this%head%y = fieldMaxY
         case(3) !left side
-            this%bodyLen = modulo(irand(), aiMaxBodyLen)+1
+            this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
             this%head%x = 0
             this%head%y = modulo(irand(), fieldMaxY+1)
         end select
@@ -252,7 +252,7 @@ contains
         type(Snake_t), intent(inout) :: this
         this%bodyLen = this%bodyLen + 1
         if(this%is_player .eqv. .TRUE.) then
-            boostTicks = int(boostTicks + boostTime_ms/ &
+            boostTicks = int(boostTicks + BOOST_TIME_MS/ &
                 (get_sleep_time_us(this%bodyLen, .FALSE.)/1000.0))
         end if
     end subroutine eat_food
@@ -269,9 +269,9 @@ contains
             x = x + modulo(x, 2)
             if (iand(mvwinch(field, y, x), A_CHARTEXT) == ch) exit
         end do
-        ierr = wattron(field, COLOR_PAIR(3))
+        ierr = wattron(field, COLOR_PAIR(CP_FOOD))
         ierr = mvwaddch(field, y, x, ichar("*", 8))
-        ierr = wattroff(field, COLOR_PAIR(3))
+        ierr = wattroff(field, COLOR_PAIR(CP_FOOD))
     end subroutine generate_food
 
     subroutine draw_info(this, debug)
@@ -283,14 +283,14 @@ contains
         ierr = clrtoeol()
         if (.NOT. can_change_color()) then
             !draw separator at the end of the header
-            ierr = mvhline(headerHeight - 1, 0, 0_C_LONG, mwMaxX)
+            ierr = mvhline(HEADER_HEIGHT - 1, 0, 0_C_LONG, mwMaxX)
         end if
         ierr = mvprintw(0, 0, "Press q to exit"//C_NULL_CHAR)
         ierr = mvprintw(1, 0, "Length: "//C_NULL_CHAR)
         if (boostTicks > 0) then
-            ierr = attron(COLOR_PAIR(6))
+            ierr = attron(COLOR_PAIR(CP_ALERT_TEXT))
             ierr = mvprintw(1, mwMaxX/2 - 4, "BOOSTING"//C_NULL_CHAR)
-            ierr = attroff(COLOR_PAIR(6))
+            ierr = attroff(COLOR_PAIR(CP_ALERT_TEXT))
         end if
         write(str, '(i3)') this%bodyLen
         ierr = mvprintw(1, 8, str)
@@ -300,31 +300,6 @@ contains
         end if
     end subroutine draw_info
 
-    subroutine setup_colors()
-        integer :: ierr
-        if (can_change_color()) then
-            ierr = init_color(9_C_SHORT, 150_C_SHORT, 74_C_SHORT, 7_C_SHORT)    !brown
-            ierr = init_color(10_C_SHORT, 1000_C_SHORT, 0_C_SHORT, 0_C_SHORT)   !red
-            ierr = init_pair(1_C_SHORT, 10_C_SHORT, 9_C_SHORT)                  !snake head
-            ierr = init_pair(2_C_SHORT, COLOR_GREEN, 9_C_SHORT)                 !snake body
-            ierr = init_pair(3_C_SHORT, COLOR_YELLOW, 9_C_SHORT)                !food
-            ierr = init_pair(4_C_SHORT, COLOR_WHITE, 9_C_SHORT)                 !background
-            ierr = init_pair(5_C_SHORT, COLOR_WHITE, COLOR_BLACK)               !default
-            ierr = init_pair(6_C_SHORT, 10_C_SHORT, COLOR_BLACK)                !alert text
-            ierr = init_pair(7_C_SHORT, COLOR_BLUE, 9_C_SHORT)                  !player head
-            ierr = init_pair(8_C_SHORT, COLOR_YELLOW, 9_C_SHORT)                !player body
-        else
-            ierr = init_pair(1_C_SHORT, COLOR_RED, COLOR_BLACK)                 !snake head
-            ierr = init_pair(2_C_SHORT, COLOR_GREEN, COLOR_BLACK)               !snake body
-            ierr = init_pair(3_C_SHORT, COLOR_YELLOW, COLOR_BLACK)              !food
-            ierr = init_pair(4_C_SHORT, COLOR_WHITE, COLOR_BLACK)               !background
-            ierr = init_pair(5_C_SHORT, COLOR_WHITE, COLOR_BLACK)               !default
-            ierr = init_pair(6_C_SHORT, COLOR_RED, COLOR_BLACK)                 !alert text
-            ierr = init_pair(7_C_SHORT, COLOR_BLUE, COLOR_BLACK)                !player head
-            ierr = init_pair(8_C_SHORT, COLOR_YELLOW, COLOR_BLACK)              !player body
-        end if
-    end subroutine setup_colors
-
     integer function get_sleep_time_us(len, applyBoost)
         integer, intent(in) :: len
         logical, intent(in) :: applyBoost
@@ -332,7 +307,7 @@ contains
         real :: intensity
         sleep_time = 6000000
         if (boostTicks > 0 .AND. applyBoost) then
-            intensity = boostIntensity
+            intensity = BOOST_INTENSITY
         else
             intensity = 1.0
         end if

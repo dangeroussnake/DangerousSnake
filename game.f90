@@ -9,45 +9,45 @@ contains
     subroutine show_menu(mexit, mode)
         logical, intent(out) :: mexit
         integer, intent(out) :: mode
-        character(len=11), parameter, dimension(0:3) :: choices = &
+        character(len=11), parameter, dimension(*) :: choices = &
             [ "Snake      ", "Snake w/ AI", "Scores     ", "Exit       "]
         integer :: ch, ierr, choice
         type(C_PTR)         :: menu_win
         integer             :: x
         integer             :: y
         integer             :: i
-        x = 2
+        y = 2
+        x = 3
         choice = 0
         menu_win = stdscr
         ierr = keypad(menu_win, TRUE)
         ierr = wclear(menu_win)
         do
             !display menu
-            y = 2
-            ierr=box(menu_win, 0_C_LONG, 0_C_LONG)
-            do i=0,size(choices)-1,1
+            ierr = box(menu_win, 0_C_LONG, 0_C_LONG)
+            ierr = mvwaddstr(menu_win, 1, 2, APP_NAME)
+            do i=1, size(choices)
               if(choice == i) then
                  ierr = wattron(menu_win, A_REVERSE)
-                 ierr = mvwaddstr(menu_win, y, x, trim(choices(i))//C_NULL_CHAR)
+                 ierr = mvwaddstr(menu_win, y+i, x, trim(choices(i))//C_NULL_CHAR)
                  ierr = wattroff(menu_win, A_REVERSE)
               else
-                 ierr = mvwaddstr(menu_win, y, x, choices(i)//C_NULL_CHAR)
+                 ierr = mvwaddstr(menu_win, y+i, x, choices(i)//C_NULL_CHAR)
               endif
-              y = y + 1
             end do
             ierr = wrefresh(menu_win)
 
             ch = wgetch(menu_win)
             select case(ch)
             case(KEY_UP)
-                choice = modulo(choice-1,size(choices))
+                choice = modulo(choice-1-1,size(choices)) + 1
             case(KEY_DOWN)
-                choice = modulo(choice+1,size(choices))
+                choice = modulo(choice-1+1,size(choices)) + 1
             case(SKEY_ENTER)
-                if(choice == size(choices)-1) then
+                if(choice == size(choices)) then
                     mode = -1
                 else
-                    mode = choice
+                    mode = choice-1
                     mexit = .FALSE.
                 end if
                 exit
@@ -70,11 +70,10 @@ contains
         integer :: mexit
         readCharacter = .TRUE.
         mexit = EXIT_NONE
-        call setup_colors()
         ierr = nodelay(stdscr, logical(.TRUE., 1))
         call getmaxyx(stdscr, mwMaxY, mwMaxX)
         ierr = wclear(stdscr)
-        field = newwin(mwMaxY - headerHeight, mwMaxX, headerHeight, 0);
+        field = newwin(mwMaxY - HEADER_HEIGHT, mwMaxX, HEADER_HEIGHT, 0);
         ierr = wbkgd(stdscr, COLOR_PAIR(5))
         ierr = wbkgd(field, COLOR_PAIR(4))
         call init_game(mode)
@@ -107,7 +106,7 @@ contains
             if(move_snake(player) /= COLLISION_NONE) then
                 mexit = EXIT_GAME_OVER
             end if
-            if(player%bodyLen+1 >= maxBody) then
+            if(player%bodyLen+1 >= MAX_BODY_LEN) then
                 mexit = EXIT_WIN
             end if
             call display_snake(player)
@@ -127,14 +126,14 @@ contains
         if(mode == MODE_SNAKE) call save_score(player%bodyLen)
         select case(mexit)
         case(EXIT_GAME_OVER)
-            ierr = attron(COLOR_PAIR(6))
+            ierr = attron(COLOR_PAIR(CP_ALERT_TEXT))
             ierr = mvprintw(1, mwMaxX/2 - 5, "Game over!"//C_NULL_CHAR)
-            ierr = attroff(COLOR_PAIR(6))
+            ierr = attroff(COLOR_PAIR(CP_ALERT_TEXT))
             call wait_for_exit()
         case(EXIT_WIN)
-            ierr = attron(COLOR_PAIR(6))
+            ierr = attron(COLOR_PAIR(CP_ALERT_TEXT))
             ierr = mvprintw(1, mwMaxX/2 - 4, "You won!"//C_NULL_CHAR)
-            ierr = attroff(COLOR_PAIR(6))
+            ierr = attroff(COLOR_PAIR(CP_ALERT_TEXT))
             call wait_for_exit()
         end select
         ierr = delwin(field)
@@ -242,4 +241,47 @@ contains
         end do
         call write_scores(scores)
     end subroutine save_score
+
+    subroutine setup_colors()
+        integer :: ierr
+        if (can_change_color()) then
+            ierr = init_color(9_C_SHORT, 150_C_SHORT, &
+                              74_C_SHORT, 7_C_SHORT)                !brown
+            ierr = init_color(10_C_SHORT, 1000_C_SHORT, &
+                              0_C_SHORT, 0_C_SHORT)                 !red
+            ierr = init_pair(INT(CP_AI_HEAD, C_SHORT), &
+                             10_C_SHORT, 9_C_SHORT)                 !AI head
+            ierr = init_pair(INT(CP_AI_BODY, C_SHORT), &
+                             COLOR_GREEN, 9_C_SHORT)                !AI body
+            ierr = init_pair(INT(CP_FOOD, C_SHORT), &
+                             COLOR_YELLOW, 9_C_SHORT)               !food
+            ierr = init_pair(INT(CP_BACKGROUND, C_SHORT), &
+                             COLOR_WHITE, 9_C_SHORT)                !background
+            ierr = init_pair(INT(CP_DEFAULT, C_SHORT), &
+                             COLOR_WHITE, COLOR_BLACK)              !default
+            ierr = init_pair(INT(CP_ALERT_TEXT, C_SHORT), &
+                             10_C_SHORT, COLOR_BLACK)               !alert text
+            ierr = init_pair(INT(CP_PLAYER_HEAD, C_SHORT), &
+                             COLOR_BLUE, 9_C_SHORT)                 !player head
+            ierr = init_pair(INT(CP_PLAYER_BODY, C_SHORT), &
+                             COLOR_YELLOW, 9_C_SHORT)               !player body
+        else
+            ierr = init_pair(INT(CP_AI_HEAD, C_SHORT), &
+                             COLOR_RED, COLOR_BLACK)                !AI head
+            ierr = init_pair(INT(CP_AI_BODY, C_SHORT), &
+                             COLOR_GREEN, COLOR_BLACK)              !AI body
+            ierr = init_pair(INT(CP_FOOD, C_SHORT), &
+                             COLOR_YELLOW, COLOR_BLACK)             !food
+            ierr = init_pair(INT(CP_BACKGROUND, C_SHORT), &
+                             COLOR_WHITE, COLOR_BLACK)              !background
+            ierr = init_pair(INT(CP_DEFAULT, C_SHORT), &
+                             COLOR_WHITE, COLOR_BLACK)              !default
+            ierr = init_pair(INT(CP_ALERT_TEXT, C_SHORT), &
+                             COLOR_RED, COLOR_BLACK)                !alert text
+            ierr = init_pair(INT(CP_PLAYER_HEAD, C_SHORT), &
+                             COLOR_BLUE, COLOR_BLACK)               !player head
+            ierr = init_pair(INT(CP_PLAYER_BODY, C_SHORT), &
+                             COLOR_YELLOW, COLOR_BLACK)             !player body
+        end if
+    end subroutine setup_colors
 end module game

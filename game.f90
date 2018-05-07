@@ -18,7 +18,7 @@ contains
         integer             :: i
         y = 2
         x = 3
-        choice = 0
+        choice = 1
         menu_win = stdscr
         ierr = keypad(menu_win, TRUE)
         ierr = wclear(menu_win)

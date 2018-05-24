@@ -10,7 +10,7 @@ contains
         logical, intent(out) :: mexit
         integer, intent(out) :: mode
         character(len=11), parameter, dimension(*) :: choices = &
-            [ "Snake      ", "Snake w/ AI", "Scores     ", "Exit       "]
+            [ "Classic    ", "Snake w/ AI", "Scores     ", "Exit       "]
         integer :: ch, ierr, choice
         type(C_PTR)         :: menu_win
         integer             :: x

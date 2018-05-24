@@ -30,7 +30,7 @@ module constants
 
     !ui
     integer, parameter :: HEADER_HEIGHT                     = 4
-    character(len=*), parameter :: APP_NAME                 = "FORTRANSNAKE"
+    character(len=*), parameter :: APP_NAME                 = "DANGEROUSSNAKE"
 
     !colors
     integer, parameter :: CP_AI_HEAD               = 1

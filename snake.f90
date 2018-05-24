@@ -30,7 +30,7 @@ module snake
     !ki's snakes
     type(Snake_t), dimension(MAX_AI_COUNT) :: snakes
     integer :: aiCount
-
+    logical :: toggle
 contains
 
     subroutine init_game(mode)
@@ -43,6 +43,7 @@ contains
             aiCount = MAX_AI_COUNT
         end select
         boostTicks = 0
+        toggle = .FALSE.
         call getmaxyx(field, fieldMaxY, fieldMaxX)
         !align field
         fieldMaxX = fieldMaxX - modulo(fieldMaxX, 2)
@@ -64,6 +65,42 @@ contains
             this%body(i) = Point(-1,-1)
         end do
     end subroutine init_snake
+
+    !don't actually move, just try
+    function test_move_snake(this) result(collision)
+        type(Snake_t), intent(in) :: this
+        integer :: new_x, new_y
+        integer :: collision
+        integer(chtype) :: cell
+        new_x = this%head%x
+        new_y = this%head%y
+
+        select case(this%direction)
+        case(DIRECTION_UP)
+            new_y = modulo(this%head%y - 1, fieldMaxY)
+        case(DIRECTION_RIGHT)
+            new_x = modulo(this%head%x + 2, fieldMaxX)
+        case(DIRECTION_DOWN)
+            new_y = modulo(this%head%y + 1, fieldMaxY)
+        case(DIRECTION_LEFT)
+            new_x = modulo(this%head%x - 2, fieldMaxX)
+        end select
+
+        cell = mvwinch(field, new_y, new_x)
+        if (iand(cell, A_CHARTEXT) /= ichar(" ")&
+            .and. iand(cell, A_CHARTEXT) /= ichar("*")) then
+            if(iand(cell, A_COLOR) == COLOR_PAIR(7) &
+                .or. iand(cell, A_COLOR) == COLOR_PAIR(8)) then
+                collision = COLLISION_AI_PLAYER
+            else
+                collision = COLLISION_AI_AI
+            end if
+            return
+        else
+            collision = COLLISION_NONE
+            return
+        end if
+    end function test_move_snake
 
     !@return a collision type
     function move_snake(this) result(collision)

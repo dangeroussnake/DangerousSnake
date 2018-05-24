@@ -18,7 +18,7 @@ contains
         integer             :: i
         y = 2
         x = 3
-        choice = 0
+        choice = 1
         menu_win = stdscr
         ierr = keypad(menu_win, TRUE)
         ierr = wclear(menu_win)
@@ -68,6 +68,7 @@ contains
         integer :: ierr, ikey
         integer :: i
         integer :: mexit
+        integer :: collision
         readCharacter = .TRUE.
         mexit = EXIT_NONE
         ierr = nodelay(stdscr, logical(.TRUE., 1))
@@ -97,15 +98,29 @@ contains
                 case(SKEY_EXIT)
                     mexit = EXIT_MANUAL
                 case(SKEY_ADVANCE)
+                case(ichar("e",8))
+                    toggle = .not. toggle
                 case(ERR) !do nothing
                 case default
                     !remove useless characters from input buffer
                     readCharacter = .TRUE.
                 end select
             end do
+            if(toggle) then
+                do i=0, 2
+                    collision = test_move_snake(player)
+                    if(collision == COLLISION_NONE) then
+                        exit
+                    else if(collision /= COLLISION_NONE .and. i==2) then
+                        mexit = EXIT_GAME_OVER
+                    end if
+                    player%direction = modulo(player%direction+1,4)
+                end do
+            end if
             if(move_snake(player) /= COLLISION_NONE) then
                 mexit = EXIT_GAME_OVER
             end if
+
             if(player%bodyLen+1 >= MAX_BODY_LEN) then
                 mexit = EXIT_WIN
             end if

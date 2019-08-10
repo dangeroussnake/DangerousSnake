@@ -12,7 +12,7 @@
 A simple snake game written in FORTRAN using gfortran and [ncurses for FORTRAN][1].
 
 ### Gameplay
-<table border="0" cellspacing="0" cellpadding="0">
+<table cellspacing="0" cellpadding="0">
     <tr>
         <td style="text-align: center;">
             <img src="https://dangeroussnake.de/res/gameplay/MainMenu.png" alt="main menu" />
@@ -34,10 +34,7 @@ A simple snake game written in FORTRAN using gfortran and [ncurses for FORTRAN][
 ## Dependencies
 [ncurses port for Fortran 2003][1] (slightly modified)
 
-## How to build on UNIX
-- install gfortran
-- install the ncurses libraries
-- `make`
+## Installation
 
 ### Installation on Ubuntu
 ```
@@ -47,6 +44,12 @@ cd DangerousSnake
 make
 ./snake
 ```
+
+### Installation on UNIX
+- install gfortran
+- install the ncurses libraries
+- `make`
+
 
 ## About
 DangerousSnake and its [website](https://dangeroussnake.de) are developed and maintained by the [DangerousSnake Organization](https://github.com/dangeroussnake).

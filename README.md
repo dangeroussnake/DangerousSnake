@@ -12,7 +12,7 @@
 A simple snake game written in FORTRAN using gfortran and [ncurses for FORTRAN][1].
 
 ### Gameplay
-<table cellspacing="0" cellpadding="0">
+<table border="0" cellspacing="0" cellpadding="0">
     <tr>
         <td style="text-align: center;">
             <img src="https://dangeroussnake.de/res/gameplay/MainMenu.png" alt="main menu" />

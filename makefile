@@ -1,15 +1,32 @@
-.PHONY: all
-all: snake
+# compiler
+FC = gfortran
 
-snake: constants.f90 util.f90 bindings.f90 snake.f90 game.f90 main.f90 pdsrc
-	gfortran -Wpedantic -Wall -I./pdsrc constants.f90 util.f90 bindings.f90 snake.f90 \
-		game.f90 main.f90 -L./pdsrc -lfncurses -lncurses -o snake
-	chmod +x snake
+# common Fortran compile flags
+FCFLAGS = -Wpedantic -Wall -I./pdsrc
+# common Fortran linker flags
+FLFLAGS = -L./pdsrc -lfncurses -lncurses
 
-bindings.mod: bindings.f90
-	gfortran bindings.f90 -c
+# debug flags
+DEBUGFLAGS += -g -O0
+# release flags
+RELEASEFLAGS += -O2
 
-.PHONY: pdsrc
+# filename of the game
+TARGET = snake
+SOURCES = constants.f90 util.f90 bindings.f90 snake.f90 game.f90 main.f90
+
+
+# targets
+debug: FCFLAGS += $(DEBUGFLAGS)
+debug: $(TARGET)
+
+$(TARGET): $(SOURCES) pdsrc
+	$(FC) $(FCFLAGS) $(SOURCES) $(FLFLAGS) -o $(TARGET) 
+	chmod +x $(TARGET)
+
+release: FCFLAGS += $(RELEASEFLAGS)
+release: $(TARGET)
+
 pdsrc:
 	make -C ./pdsrc all
 

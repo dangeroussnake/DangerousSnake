@@ -5,18 +5,40 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Fortran Launch (GDB)",
+            "name": "Fortran Launch (Debug)",
             "type": "cppdbg",
             "request": "launch",
             "targetArchitecture": "x86",
-            "program": "${workspaceRoot}/snake",
+            "program": "${workspaceRoot}/debug/snake",
             "miDebuggerPath": "gdb",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
             "environment": [],
             "externalConsole": true,
-            "preLaunchTask": "make",
+            "preLaunchTask": "make debug",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Fortran Launch (Release)",
+            "type": "cppdbg",
+            "request": "launch",
+            "targetArchitecture": "x86",
+            "program": "${workspaceRoot}/release/snake",
+            "miDebuggerPath": "gdb",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "externalConsole": true,
+            "preLaunchTask": "make release",
             "MIMode": "gdb",
             "setupCommands": [
                 {

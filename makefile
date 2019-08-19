@@ -13,6 +13,10 @@ RELEASEFLAGS += -O2
 
 # filename of the game
 TARGET = snake
+SRC_DIR = src
+BUILD_DIR = build
+DEBUG_BUILD_DIR = debug
+RELEASE_BUILD_DIR = release
 SOURCES = constants.f90 util.f90 bindings.f90 snake.f90 game.f90 main.f90
 
 
@@ -32,4 +36,4 @@ pdsrc:
 
 .PHONY: clean
 clean:
-	rm -f snake *.mod
+	rm -f snake *.mod *.o

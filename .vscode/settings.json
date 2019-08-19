@@ -1,0 +1,5 @@
+{
+    "fortran.includePaths": [
+        "./pdsrc"
+    ]
+}

@@ -10,7 +10,7 @@ contains
         logical, intent(out) :: mexit
         integer, intent(out) :: mode
         character(len=11), parameter, dimension(*) :: choices = &
-            [ "Classic    ", "Snake w/ AI", "Scores     ", "Exit       "]
+            ["Classic    ", "Snake w/ AI", "Scores     ", "Exit       "]
         integer :: ch, ierr, choice
         type(C_PTR)         :: menu_win
         integer             :: x
@@ -25,7 +25,7 @@ contains
         do
             !display menu
             ierr = box(menu_win, 0_C_LONG, 0_C_LONG)
-            ierr = mvwaddstr(menu_win, 1, 2, APP_NAME)
+            ierr = mvwaddstr(menu_win, 1, 2, APP_NAME//C_NULL_CHAR)
             do i=1, size(choices)
               if(choice == i) then
                  ierr = wattron(menu_win, A_REVERSE)

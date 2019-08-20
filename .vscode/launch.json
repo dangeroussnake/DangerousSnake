@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Fortran Launch (Debug)",
+            "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
             "targetArchitecture": "x86",
-            "program": "${workspaceRoot}/debug/snake",
+            "program": "${workspaceRoot}/bin/snake",
             "miDebuggerPath": "gdb",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceRoot}/bin",
             "environment": [],
             "externalConsole": true,
-            "preLaunchTask": "make debug",
+            "preLaunchTask": "build_debug",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -27,18 +27,18 @@
             ]
         },
         {
-            "name": "Fortran Launch (Release)",
+            "name": "Release",
             "type": "cppdbg",
             "request": "launch",
             "targetArchitecture": "x86",
-            "program": "${workspaceRoot}/release/snake",
+            "program": "${workspaceRoot}/bin/snake",
             "miDebuggerPath": "gdb",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceRoot}/bin",
             "environment": [],
             "externalConsole": true,
-            "preLaunchTask": "make release",
+            "preLaunchTask": "build_release",
             "MIMode": "gdb",
             "setupCommands": [
                 {
@@ -49,7 +49,7 @@
             ]
         },
         {
-            "name": "Intel Debug Attach",
+            "name": "Debug Attach",
             "type": "cppvsdbg",
             "request": "attach",
             "processId": "${command:pickProcess}"

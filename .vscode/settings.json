@@ -1,5 +1,6 @@
 {
     "fortran.includePaths": [
-        "./pdsrc"
-    ]
+        "${workspaceFolder}/modules"
+    ],
+    "cmake.configureOnOpen": false
 }

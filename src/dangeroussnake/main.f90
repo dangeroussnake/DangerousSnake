@@ -2,7 +2,7 @@ program main
     use ncurses
     use game
     implicit none
-
+    
     logical, parameter :: debug = .FALSE.
 
     integer :: ierr

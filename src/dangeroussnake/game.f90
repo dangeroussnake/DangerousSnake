@@ -40,8 +40,10 @@ contains
             ch = wgetch(menu_win)
             select case(ch)
             case(KEY_UP)
+            case(SKEY_UP)
                 choice = modulo(choice-1-1,size(choices)) + 1
             case(KEY_DOWN)
+            case(SKEY_DOWN)
                 choice = modulo(choice-1+1,size(choices)) + 1
             case(SKEY_ENTER)
                 if(choice == size(choices)) then

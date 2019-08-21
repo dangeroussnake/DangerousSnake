@@ -22,6 +22,8 @@ module constants
     integer, parameter :: EXIT_WIN                          = 3
 
     integer, parameter :: SKEY_EXIT                         = ichar("q",8)
+    integer, parameter :: SKEY_UP                           = ichar("w",8)
+    integer, parameter :: SKEY_DOWN                         = ichar("s",8)
     integer, parameter :: SKEY_LEFT                         = ichar("a",8)
     integer, parameter :: SKEY_RIGHT                        = ichar("d",8)
     integer, parameter :: SKEY_ADVANCE                      = ichar(" ",8)

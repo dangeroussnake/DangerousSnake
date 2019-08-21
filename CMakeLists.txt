@@ -13,6 +13,11 @@ set(VERSION 0.1.0)
 # Add our local modlues to the module path
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
+# Add a distclean target to the Makefile
+add_custom_target(distclean 
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_MODULE_PATH}/distclean.cmake
+)
+
 # Uncomment if it is required that Fortran 90 is supported
 if(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
     message(FATAL_ERROR "Fortran compiler does not support F90")
@@ -56,7 +61,4 @@ set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_SOURCE_DIR}/modules)
 # Add source directories
 add_subdirectory(src)
 
-# Add a distclean target to the Makefile
-add_custom_target(distclean 
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/distclean.cmake
-)
+

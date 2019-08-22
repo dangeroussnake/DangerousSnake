@@ -39,23 +39,21 @@ contains
 
             ch = wgetch(menu_win)
             select case(ch)
-            case(KEY_UP)
-            case(SKEY_UP)
-                choice = modulo(choice-1-1,size(choices)) + 1
-            case(KEY_DOWN)
-            case(SKEY_DOWN)
-                choice = modulo(choice-1+1,size(choices)) + 1
-            case(SKEY_ENTER)
-                if(choice == size(choices)) then
+                case(KEY_UP, SKEY_UP)
+                    choice = modulo(choice-1-1,size(choices)) + 1
+                case(KEY_DOWN, SKEY_DOWN)
+                    choice = modulo(choice-1+1,size(choices)) + 1
+                case(SKEY_ENTER)
+                    if(choice == size(choices)) then
+                        mode = -1
+                    else
+                        mode = choice-1
+                        mexit = .FALSE.
+                    end if
+                    exit
+                case(SKEY_ESCAPE, SKEY_EXIT)
                     mode = -1
-                else
-                    mode = choice-1
-                    mexit = .FALSE.
-                end if
-                exit
-            case(SKEY_ESCAPE, SKEY_EXIT)
-                mode = -1
-                exit
+                    exit
             end select
         end do
         if(mode == -1) then
@@ -92,17 +90,17 @@ contains
                 readCharacter = .FALSE.
                 ikey = getch()
                 select case(ikey)
-                case(SKEY_LEFT)
-                    call turn_left(player)
-                case(SKEY_RIGHT)
-                    call turn_right(player)
-                case(SKEY_EXIT)
-                    mexit = EXIT_MANUAL
-                case(SKEY_ADVANCE)
-                case(ERR) !do nothing
-                case default
-                    !remove useless characters from input buffer
-                    readCharacter = .TRUE.
+                    case(SKEY_LEFT)
+                        call turn_left(player)
+                    case(SKEY_RIGHT)
+                        call turn_right(player)
+                    case(SKEY_EXIT)
+                        mexit = EXIT_MANUAL
+                    case(SKEY_ADVANCE) !do nothing
+                    case(ERR) !do nothing
+                    case default
+                        !remove useless characters from input buffer
+                        readCharacter = .TRUE.
                 end select
             end do
             if(move_snake(player) /= COLLISION_NONE) then
@@ -127,16 +125,16 @@ contains
         end do
         if(mode == MODE_SNAKE) call save_score(player%bodyLen)
         select case(mexit)
-        case(EXIT_GAME_OVER)
-            ierr = attron(COLOR_PAIR(CP_ALERT_TEXT))
-            ierr = mvprintw(1, mwMaxX/2 - 5, "Game over!"//C_NULL_CHAR)
-            ierr = attroff(COLOR_PAIR(CP_ALERT_TEXT))
-            call wait_for_exit()
-        case(EXIT_WIN)
-            ierr = attron(COLOR_PAIR(CP_ALERT_TEXT))
-            ierr = mvprintw(1, mwMaxX/2 - 4, "You won!"//C_NULL_CHAR)
-            ierr = attroff(COLOR_PAIR(CP_ALERT_TEXT))
-            call wait_for_exit()
+            case(EXIT_GAME_OVER)
+                ierr = attron(COLOR_PAIR(CP_ALERT_TEXT))
+                ierr = mvprintw(1, mwMaxX/2 - 5, "Game over!"//C_NULL_CHAR)
+                ierr = attroff(COLOR_PAIR(CP_ALERT_TEXT))
+                call wait_for_exit()
+            case(EXIT_WIN)
+                ierr = attron(COLOR_PAIR(CP_ALERT_TEXT))
+                ierr = mvprintw(1, mwMaxX/2 - 4, "You won!"//C_NULL_CHAR)
+                ierr = attroff(COLOR_PAIR(CP_ALERT_TEXT))
+                call wait_for_exit()
         end select
         ierr = delwin(field)
         ierr = nodelay(stdscr, logical(.FALSE., 1))

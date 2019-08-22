@@ -24,10 +24,10 @@ program main
             exit
         else
             select case(mode)
-            case(MODE_SNAKE, MODE_SNAKE_AI)
-                call run_game(mode, debug)
-            case(MODE_SCORES)
-                call show_scores()
+                case(MODE_SNAKE, MODE_SNAKE_AI)
+                    call run_game(mode, debug)
+                case(MODE_SCORES)
+                    call show_scores()
             end select
         end if
     end do

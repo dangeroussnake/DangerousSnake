@@ -37,10 +37,10 @@ contains
         integer, intent(in) :: mode
         integer :: i
         select case(mode)
-        case(MODE_SNAKE)
-            aiCount = 0
-        case(MODE_SNAKE_AI)
-            aiCount = MAX_AI_COUNT
+            case(MODE_SNAKE)
+                aiCount = 0
+            case(MODE_SNAKE_AI)
+                aiCount = MAX_AI_COUNT
         end select
         boostTicks = 0
         call getmaxyx(field, fieldMaxY, fieldMaxX)
@@ -76,14 +76,14 @@ contains
         new_y = this%head%y
 
         select case(this%direction)
-        case(DIRECTION_UP)
-            new_y = modulo(this%head%y - 1, fieldMaxY)
-        case(DIRECTION_RIGHT)
-            new_x = modulo(this%head%x + 2, fieldMaxX)
-        case(DIRECTION_DOWN)
-            new_y = modulo(this%head%y + 1, fieldMaxY)
-        case(DIRECTION_LEFT)
-            new_x = modulo(this%head%x - 2, fieldMaxX)
+            case(DIRECTION_UP)
+                new_y = modulo(this%head%y - 1, fieldMaxY)
+            case(DIRECTION_RIGHT)
+                new_x = modulo(this%head%x + 2, fieldMaxX)
+            case(DIRECTION_DOWN)
+                new_y = modulo(this%head%y + 1, fieldMaxY)
+            case(DIRECTION_LEFT)
+                new_x = modulo(this%head%x - 2, fieldMaxX)
         end select
 
         !move body
@@ -166,10 +166,10 @@ contains
             end if
         end if
         select case(modulo(irand(), 10))
-        case (0)
-            call turn_left(this)
-        case (1)
-            call turn_right(this)
+            case(0)
+                call turn_left(this)
+            case(1)
+                call turn_right(this)
         end select
         res = move_snake(this)
         if(res /= COLLISION_NONE) then
@@ -198,22 +198,22 @@ contains
         integer :: side
         side = modulo(irand(),4)
         select case(side)
-        case(0) !top side
-            this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
-            this%head%x = alignX(modulo(irand(), fieldMaxX))
-            this%head%y = 0
-        case(1) !right side
-            this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
-            this%head%x = fieldMaxX
-            this%head%y = modulo(irand(), fieldMaxY+1)
-        case(2) !bottom side
-            this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
-            this%head%x = alignX(modulo(irand(), fieldMaxX))
-            this%head%y = fieldMaxY
-        case(3) !left side
-            this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
-            this%head%x = 0
-            this%head%y = modulo(irand(), fieldMaxY+1)
+            case(0) !top side
+                this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
+                this%head%x = alignX(modulo(irand(), fieldMaxX))
+                this%head%y = 0
+            case(1) !right side
+                this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
+                this%head%x = fieldMaxX
+                this%head%y = modulo(irand(), fieldMaxY+1)
+            case(2) !bottom side
+                this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
+                this%head%x = alignX(modulo(irand(), fieldMaxX))
+                this%head%y = fieldMaxY
+            case(3) !left side
+                this%bodyLen = modulo(irand(), MAX_AI_BODY_LEN)+1
+                this%head%x = 0
+                this%head%y = modulo(irand(), fieldMaxY+1)
         end select
     end subroutine respawn_AI_snake
 

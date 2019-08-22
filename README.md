@@ -40,19 +40,21 @@ A simple snake game written in FORTRAN using gfortran and [ncurses for FORTRAN][
 ```
 sudo apt install gfortran libncurses-dev cmake
 git clone https://github.com/dangeroussnake/DangerousSnake.git
-cd DangerousSnake/build
-cmake .. && make
+mkdir DangerousSnake/build 
+(cd DangerousSnake/build && cmake .. && make)
 DangerousSnake/bin/snake
 ```
 
 ### Installation on UNIX
-- install cmake
-- install gfortran
-- install the ncurses libraries
+- install CMake, gfortran, ncurses
+- clone the repository:
+```
+git clone https://github.com/dangeroussnake/DangerousSnake.git
+```
 - Run CMake and make:
 ```
-cd DangerousSnake/build
-cmake .. && make
+mkdir DangerousSnake/build 
+(cd DangerousSnake/build && cmake .. && make)
 DangerousSnake/bin/snake
 ```
 

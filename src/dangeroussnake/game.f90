@@ -61,9 +61,8 @@ contains
         end if
     end subroutine show_menu
 
-    subroutine run_game(mode, debug)
+    subroutine run_game(mode)
         integer, intent(in) :: mode
-        logical, intent(in) :: debug
         logical :: readCharacter
         integer :: ierr, ikey
         integer :: i
@@ -117,7 +116,7 @@ contains
             do i=1, aiCount
                 call display_snake(snakes(i))
             end do
-            call draw_info(player, debug)
+            call draw_info(player)
             ierr = refresh()
             ierr = wrefresh(field)
             call usleep(get_sleep_time_us(player%bodyLen, .TRUE.))

@@ -2,8 +2,6 @@ program main
     use ncurses
     use game
     implicit none
-    
-    logical, parameter :: debug = .FALSE.
 
     integer :: ierr
     integer :: mode
@@ -25,7 +23,7 @@ program main
         else
             select case(mode)
                 case(MODE_SNAKE, MODE_SNAKE_AI)
-                    call run_game(mode, debug)
+                    call run_game(mode)
                 case(MODE_SCORES)
                     call show_scores()
             end select

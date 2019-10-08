@@ -274,9 +274,8 @@ contains
         ierr = wattroff(field, COLOR_PAIR(CP_FOOD))
     end subroutine generate_food
 
-    subroutine draw_info(this, debug)
+    subroutine draw_info(this)
         type(Snake_t), intent(in) :: this
-        logical, intent(in) :: debug
         integer(C_LONG) :: ierr
         character(len=3) :: str
         ierr = move(1, 0)
@@ -294,10 +293,6 @@ contains
         end if
         write(str, '(i3)') this%bodyLen
         ierr = mvprintw(1, 8, str)
-
-        if(debug) then
-            ierr = mvprintw(0, mwMaxX-5, "debug"//C_NULL_CHAR)
-        end if
     end subroutine draw_info
 
     integer function get_sleep_time_us(len, applyBoost)
